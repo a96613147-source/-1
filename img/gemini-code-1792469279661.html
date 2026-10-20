@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Угадай число!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 340px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 2.2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
+        input {
+            padding: 15px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            width: 80%;
+            margin-bottom: 15px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background-color: #ff9f43;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            width: 90%;
+        }
+
+        button:hover {
+            background-color: #ffaf63;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(2px);
+        }
+
+        #message {
+            margin-top: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 2em;
+        }
+
+        .wrong { color: #ff6b6b; }
+        .info { color: #f1c40f; }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Модальное окно сертификата */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .certificate {
+            background: linear-gradient(135deg, #fff 0%, #f5f7fa 100%);
+            color: #333;
+            padding: 30px 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border: 8px solid #ffd700;
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .certificate {
+            transform: scale(1);
+        }
+
+        .certificate h2 {
+            color: #764ba2;
+            margin-top: 0;
+            font-size: 1.6em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .certificate .player-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #d35400;
+            margin: 10px 0;
+            border-bottom: 2px dashed #bdc3c7;
+            padding-bottom: 5px;
+        }
+
+        .certificate p {
+            color: #555;
+            font-size: 0.95em;
+            margin: 10px 0;
+        }
+
+        .certificate .stats {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2d3436;
+            background: #dfe6e9;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .certificate button {
+            background-color: #6c5ce7;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .certificate button:hover {
+            background-color: #8293ff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН РЕГИСТРАЦИИ -->
+    <div class="container" id="regScreen">
+        <h1>Регистрация</h1>
+        <p>Представьтесь, чтобы начать игру и получить сертификат.</p>
+        <input type="text" id="nameInput" placeholder="Ваше имя"><br>
+        <input type="number" id="ageInput" placeholder="Ваш возраст" min="1" max="120"><br>
+        <button id="startButton">Начать игру</button>
+        <p id="regMessage" class="info" style="margin-top: 15px; font-size: 0.95em;"></p>
+    </div>
+
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div class="container hidden" id="gameScreen">
+        <h1>Угадай число!</h1>
+        <p id="greetingText"></p>
+        <input type="number" id="guessInput" placeholder="Введи число (1-100)" min="1" max="100"><br>
+        <button id="guessButton">Проверить</button>
+        <p id="message"></p>
+    </div>
+
+    <!-- СЕРТИФИКАТ (МОДАЛЬНОЕ ОКНО) -->
+    <div class="modal-overlay" id="certModal">
+        <div class="certificate">
+            <h2>🏆 Сертификат победителю</h2>
+            <p>Настоящий сертификат подтверждает, что</p>
+            <div class="player-name" id="certPlayerName">Имя Игрока</div>
+            <p>успешно справился(ась) с задачей и угадал(а) число!</p>
+            <div class="stats" id="certStats">Попыток: 0</div>
+            <p style="font-size: 0.8em; color: #888;" id="certDate"></p>
+            <button id="restartButton">Сыграть еще раз</button>
+        </div>
+    </div>
+
+    <script>
+        let playerName = '';
+        let playerAge = '';
+        let secretNumber = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+
+        const regScreen = document.getElementById('regScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const nameInput = document.getElementById('nameInput');
+        const ageInput = document.getElementById('ageInput');
+        const startButton = document.getElementById('startButton');
+        const regMessage = document.getElementById('regMessage');
+        const greetingText = document.getElementById('greetingText');
+
+        const guessInput = document.getElementById('guessInput');
+        const guessButton = document.getElementById('guessButton');
+        const message = document.getElementById('message');
+
+        const certModal = document.getElementById('certModal');
+        const certPlayerName = document.getElementById('certPlayerName');
+        const certStats = document.getElementById('certStats');
+        const certDate = document.getElementById('certDate');
+        const restartButton = document.getElementById('restartButton');
+
+        // Встроенный синтезатор звука
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, duration, type = 'sine') {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playVictorySound() {
+            playSound(523.25, 0.1, 'triangle');
+            setTimeout(() => playSound(659.25, 0.1, 'triangle'), 100);
+            setTimeout(() => playSound(783.99, 0.1, 'triangle'), 200);
+            setTimeout(() => playSound(1046.50, 0.4, 'triangle'), 300);
+        }
+
+        // Кнопка старта регистрации
+        startButton.addEventListener('click', () => {
+            playSound(500, 0.05);
+            playerName = nameInput.value.trim();
+            playerAge = ageInput.value.trim();
+
+            if (!playerName) {
+                regMessage.textContent = 'Пожалуйста, введите ваше имя!';
+                return;
+            }
+            if (!playerAge || playerAge <= 0 || playerAge > 120) {
+                regMessage.textContent = 'Пожалуйста, введите корректный возраст!';
+                return;
+            }
+
+            // Переключаем экраны
+            regScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            greetingText.textContent = `Привет, ${playerName}! Я загадал число от 1 до 100.`;
+            guessInput.focus();
+        });
+
+        // Проверка числа в игре
+        function checkGuess() {
+            playSound(400, 0.05);
+
+            const userGuess = parseInt(guessInput.value);
+            attempts++;
+
+            if (isNaN(userGuess) || userGuess < 1 || userGuess > 100) {
+                message.textContent = 'Пожалуйста, введи число от 1 до 100!';
+                message.className = 'info';
+                attempts--; 
+            } else if (userGuess === secretNumber) {
+                message.textContent = '';
+                playVictorySound();
+
+                // Заполняем данные сертификата
+                certPlayerName.textContent = `${playerName} (${playerAge} лет)`;
+                certStats.textContent = `Число: ${secretNumber} | Попыток: ${attempts}`;
+                const now = new Date();
+                certDate.textContent = `Дата: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+                // Показываем сертификат
+                certModal.classList.add('active');
+            } else if (userGuess < secretNumber) {
+                message.textContent = '📈 Бооольше!';
+                message.className = 'wrong';
+            } else {
+                message.textContent = '📉 Меееньше!';
+                message.className = 'wrong';
+            }
+
+            guessInput.value = '';
+            guessInput.focus();
+        }
+
+        guessButton.addEventListener('click', checkGuess);
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkGuess();
+        });
+
+        // Перезапуск игры
+        restartButton.addEventListener('click', () => {
+            playSound(600, 0.1);
+            certModal.classList.remove('active');
+            secretNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            message.textContent = '';
+            guessInput.value = '';
+            
+            // Возвращаемся на экран регистрации (или можно сразу в игру, тут возвращаем на регистрацию)
+            gameScreen.classList.add('hidden');
+            regScreen.classList.remove('hidden');
+            nameInput.value = '';
+            ageInput.value = '';
+            regMessage.textContent = '';
+            nameInput.focus();
+        });
+    </script>
+</body>
+</html>
